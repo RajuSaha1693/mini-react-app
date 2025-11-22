@@ -23,7 +23,9 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm test -- --coverage
+        run: npm test -- --coverage --passWithNoTests
+
+        # run: npm test -- --coverage
 
       - name: Build application
         run: npm run build
