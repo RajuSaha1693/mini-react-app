@@ -2,70 +2,70 @@ name: Build, Test and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm install
-      
-    - name: Run tests
-      run: npm test -- --watchAll=false --coverage
-      
-    - name: Build application
-      run: npm run build
-      
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-files
-        path: build/
-        retention-days: 1
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --watchAll=false --coverage
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: build/
+          retention-days: 1
 
   docker-build:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      
-    - name: Build Docker image
-      run: |
-        docker build -t docker-react-demo .
-        
-    - name: Test Docker image
-      run: |
-        docker run -d --name test-container -p 4173:80 docker-react-demo
-        sleep 10
-        
-        # Check if container is running
-        docker ps
-        
-        # Check if application is responding
-        curl -f http://localhost:4173/ || exit 1
-        
-        # Cleanup
-        docker stop test-container
-        docker rm test-container
-        
-    - name: Log build success
-      run: echo "Docker image built and tested successfully!"
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t docker-react-demo .
+
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-container -p 4173:80 docker-react-demo
+          sleep 10
+
+          # Check if container is running
+          docker ps
+
+          # Check if application is responding
+          curl -f http://localhost:4173/ || exit 1
+
+          # Cleanup
+          docker stop test-container
+          docker rm test-container
+
+      - name: Log build success
+        run: echo "Docker image built and tested successfully!"
